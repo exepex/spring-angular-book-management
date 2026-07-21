@@ -11,6 +11,7 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
@@ -24,6 +25,8 @@ import java.util.Optional;
 @Component
 @Slf4j
 public class BookServiceImpl implements BookService {
+
+    private static final int MAX_PAGE_SIZE = 100;
 
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
@@ -47,6 +50,9 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Page<BookDTO> getAllBooks(Pageable pageable, String search) {
+        if (pageable.getPageSize() > MAX_PAGE_SIZE) {
+            pageable = PageRequest.of(pageable.getPageNumber(), MAX_PAGE_SIZE, pageable.getSort());
+        }
         return bookRepository.findAllBooksOptimized(pageable, search);
     }
 

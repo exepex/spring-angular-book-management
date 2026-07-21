@@ -7,6 +7,7 @@ import com.daniellaera.backend.service.BookService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,8 @@ import org.springframework.web.server.ResponseStatusException;
 @Slf4j
 public class BookController {
 
+    private static final int MAX_PAGE_SIZE = 100;
+
     private final BookService bookService;
 
     @Autowired
@@ -32,6 +35,9 @@ public class BookController {
             Pageable pageable,
             @RequestParam(required = false) String search
     ) {
+        if (pageable.getPageSize() > MAX_PAGE_SIZE) {
+            pageable = PageRequest.of(pageable.getPageNumber(), MAX_PAGE_SIZE, pageable.getSort());
+        }
         Page<BookDTO> page = bookService.getAllBooks(pageable, search);
         return PageResponse.of(page);
     }
