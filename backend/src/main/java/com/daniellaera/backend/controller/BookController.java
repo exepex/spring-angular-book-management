@@ -32,6 +32,7 @@ public class BookController {
             Pageable pageable,
             @RequestParam(required = false) String search
     ) {
+        log.info("getAllBooks request - page: {}, title: {}", pageable.getPageNumber(), search);
         Page<BookDTO> page = bookService.getAllBooks(pageable, search);
         return PageResponse.of(page);
     }
