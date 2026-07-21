@@ -47,7 +47,12 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Page<BookDTO> getAllBooks(Pageable pageable, String search) {
-        return bookRepository.findAllBooksOptimized(pageable, search);
+        // Trim surrounding whitespace; treat empty-after-trim as no filter
+        String normalizedSearch = (search != null) ? search.trim() : null;
+        if (normalizedSearch != null && normalizedSearch.isEmpty()) {
+            normalizedSearch = null;
+        }
+        return bookRepository.findAllBooksOptimized(pageable, normalizedSearch);
     }
 
     @Override
