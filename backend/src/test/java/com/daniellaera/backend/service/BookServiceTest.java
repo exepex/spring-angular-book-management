@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.List;
@@ -73,6 +74,25 @@ public class BookServiceTest {
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent().getFirst().getTitle()).isEqualTo("Test Book");
         verify(bookRepository, times(1)).findAllBooksOptimized(any(Pageable.class), any());
+    }
+
+    @Test
+    void getAllBooks_ShouldNormalizeNegativePageToFirstPage() {
+        Page<BookDTO> page = new PageImpl<>(List.of());
+        when(bookRepository.findAllBooksOptimized(any(Pageable.class), any())).thenReturn(page);
+
+        // PageRequest rejects a negative page, so build the out-of-range input via a stub Pageable
+        Pageable negativePage = mock(Pageable.class);
+        when(negativePage.getPageNumber()).thenReturn(-3);
+        when(negativePage.getPageSize()).thenReturn(5);
+        when(negativePage.getSort()).thenReturn(Sort.unsorted());
+
+        bookService.getAllBooks(negativePage, null);
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(bookRepository).findAllBooksOptimized(pageableCaptor.capture(), any());
+        assertThat(pageableCaptor.getValue().getPageNumber()).isEqualTo(0);
+        assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(5);
     }
 
     @Test
