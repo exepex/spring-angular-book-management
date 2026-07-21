@@ -11,7 +11,9 @@ import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
@@ -47,6 +49,10 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Page<BookDTO> getAllBooks(Pageable pageable, String search) {
+        // Apply default sort by title ascending when the client supplies no explicit ordering
+        if (pageable.getSort().isUnsorted()) {
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("title").ascending());
+        }
         return bookRepository.findAllBooksOptimized(pageable, search);
     }
 

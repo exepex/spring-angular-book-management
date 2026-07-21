@@ -1,0 +1,1 @@
+{"skippedReason":"","exitCode":0,"status":"PASSED","executed":true,"at":"2026-07-21T20:11:21.734268900Z","gates":[{"errorCount":0,"passed":true,"skipCount":0,"gate":"TESTS","failCount":0,"passCount":42}],"harnessKind":"maven-local"}
