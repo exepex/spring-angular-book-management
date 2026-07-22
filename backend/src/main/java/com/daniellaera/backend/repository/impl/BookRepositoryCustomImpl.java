@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -54,7 +56,10 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
                             case "publishedDate" -> "published_date";
                             case "averageRating" -> "average_rating";
                             case "isAvailable" -> "is_available";
-                            default -> field; // title, author, isbn, genre stay the same
+                            // Sortable columns that keep their name
+                            case "id", "title", "description", "author", "isbn", "genre" -> field;
+                            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                    "Invalid sort field: " + field);
                         };
                         return "b." + column + (order.isAscending() ? " ASC" : " DESC");
                     })
