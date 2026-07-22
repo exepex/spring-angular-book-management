@@ -29,6 +29,7 @@ import java.util.Date;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -104,6 +105,31 @@ public class BookControllerITTest {
                 .andExpect(jsonPath("$.totalPages").value(1))
                 .andExpect(jsonPath("$.content[0].title").value("Title 1"))
                 .andExpect(jsonPath("$.content[1].title").value("Title 2"));
+    }
+
+    // --- RBAC probes: getAllBooks (GET) is public read; writes require USER authority (SecurityConfig) ---
+
+    @Test
+    void getAllBooks_WithoutAuth_IsPublicReadable() throws Exception {
+        // GET /api/v3/book is permitAll() — anonymous request must reach the handler and return 200.
+        mockMvc.perform(get("/api/v3/book")
+                        .param("page", "0")
+                        .param("size", "5")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(2));
+    }
+
+    @Test
+    void deleteBook_WithoutAuth_IsForbidden() throws Exception {
+        // DELETE is hasAuthority("USER") — anonymous request is rejected by the filter chain before the handler.
+        Integer anyBookId = bookRepository.findAll().get(0).getId();
+
+        mockMvc.perform(delete("/api/v3/book/{bookId}", anyBookId))
+                .andExpect(status().isForbidden());
+
+        // RBAC gate must block deletion entirely — nothing removed.
+        assertThat(bookRepository.findAll()).hasSize(2);
     }
 
     @Test
