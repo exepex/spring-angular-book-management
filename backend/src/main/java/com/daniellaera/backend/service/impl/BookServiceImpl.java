@@ -46,6 +46,11 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    public long getBookCount() {
+        return bookRepository.count();
+    }
+
+    @Override
     public Page<BookDTO> getAllBooks(Pageable pageable, String search) {
         return bookRepository.findAllBooksOptimized(pageable, search);
     }

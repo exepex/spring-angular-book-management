@@ -199,6 +199,16 @@ public class BookServiceTest {
     }
 
     @Test
+    void getBookCount_ShouldReturnCount() {
+        when(bookRepository.count()).thenReturn(7L);
+
+        long count = bookService.getBookCount();
+
+        assertThat(count).isEqualTo(7L);
+        verify(bookRepository, times(1)).count();
+    }
+
+    @Test
     void getAllBooks_ShouldPassSearchParam() {
         Page<BookDTO> page = new PageImpl<>(List.of());
         when(bookRepository.findAllBooksOptimized(any(Pageable.class), eq("harry")))

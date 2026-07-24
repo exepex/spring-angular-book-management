@@ -24,5 +24,7 @@ public interface BookService {
 
     long getTotalBookCount();
 
+    long getBookCount();
+
     List<BookAiView> getBooksAiOptimizedView(List<Integer> relevantIds);
 }
