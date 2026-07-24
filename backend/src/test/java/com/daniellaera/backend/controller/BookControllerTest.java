@@ -108,6 +108,17 @@ public class BookControllerTest {
     }
 
     @Test
+    void getAllBooks_WithNegativePage_ReturnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/v3/book")
+                        .param("page", "-1")
+                        .param("size", "5")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        verify(bookService, times(0)).getAllBooks(any(), any());
+    }
+
+    @Test
     void createBook_ReturnsUnauthorized() throws Exception {
         BookDTO bookDTO = new BookDTO();
         bookDTO.setIsbn("123456789");

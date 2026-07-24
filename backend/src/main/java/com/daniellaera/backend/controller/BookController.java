@@ -30,10 +30,16 @@ public class BookController {
     @GetMapping
     public PageResponse<BookDTO> getAllBooks(
             Pageable pageable,
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Integer page
     ) {
-        Page<BookDTO> page = bookService.getAllBooks(pageable, search);
-        return PageResponse.of(page);
+        // Pageable clamps a negative page index to 0, so validate the raw request param
+        if (page != null && page < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Page index must not be less than zero");
+        }
+
+        Page<BookDTO> bookPage = bookService.getAllBooks(pageable, search);
+        return PageResponse.of(bookPage);
     }
 
     @GetMapping("{bookId}")
