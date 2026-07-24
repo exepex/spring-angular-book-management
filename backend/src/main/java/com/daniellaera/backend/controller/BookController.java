@@ -32,7 +32,9 @@ public class BookController {
             Pageable pageable,
             @RequestParam(required = false) String search
     ) {
-        Page<BookDTO> page = bookService.getAllBooks(pageable, search);
+        // blank search behaves like no search at all
+        String normalizedSearch = (search != null && !search.isBlank()) ? search.trim() : null;
+        Page<BookDTO> page = bookService.getAllBooks(pageable, normalizedSearch);
         return PageResponse.of(page);
     }
 

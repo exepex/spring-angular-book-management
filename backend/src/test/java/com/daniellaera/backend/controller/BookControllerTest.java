@@ -108,6 +108,64 @@ public class BookControllerTest {
     }
 
     @Test
+    void getAllBooks_WithBlankSearch_IsTreatedAsNoSearch() throws Exception {
+        BookDTO bookDTO1 = new BookDTO();
+        bookDTO1.setIsbn("123456789");
+        bookDTO1.setTitle("Title");
+        bookDTO1.setAuthor("Thomas H. Cormen");
+        bookDTO1.setGenre("Fiction");
+
+        BookDTO bookDTO2 = new BookDTO();
+        bookDTO2.setIsbn("987654321");
+        bookDTO2.setTitle("Another Title");
+        bookDTO2.setAuthor("John Doe");
+        bookDTO2.setGenre("Non-Fiction");
+
+        Pageable pageable = PageRequest.of(0, 5, Sort.by("title").ascending());
+        Page<BookDTO> bookDTOPage = new PageImpl<>(Arrays.asList(bookDTO1, bookDTO2), pageable, 2);
+
+        given(bookService.getAllBooks(any(Pageable.class), isNull())).willReturn(bookDTOPage);
+
+        mockMvc.perform(get("/api/v3/book")
+                        .param("page", "0")
+                        .param("size", "5")
+                        .param("sort", "title,asc")
+                        .param("search", "   ")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(2))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.totalElements").value(2));
+
+        verify(bookService).getAllBooks(any(Pageable.class), isNull());
+    }
+
+    @Test
+    void getAllBooks_WithPaddedSearch_IsTrimmed() throws Exception {
+        BookDTO bookDTO1 = new BookDTO();
+        bookDTO1.setIsbn("123456789");
+        bookDTO1.setTitle("Title");
+        bookDTO1.setAuthor("Thomas H. Cormen");
+        bookDTO1.setGenre("Fiction");
+
+        Pageable pageable = PageRequest.of(0, 5, Sort.by("title").ascending());
+        Page<BookDTO> bookDTOPage = new PageImpl<>(List.of(bookDTO1), pageable, 1);
+
+        given(bookService.getAllBooks(any(Pageable.class), eq("Title"))).willReturn(bookDTOPage);
+
+        mockMvc.perform(get("/api/v3/book")
+                        .param("page", "0")
+                        .param("size", "5")
+                        .param("sort", "title,asc")
+                        .param("search", "  Title  ")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content.length()").value(1))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.totalElements").value(1));
+
+        verify(bookService).getAllBooks(any(Pageable.class), eq("Title"));
+    }
+
+    @Test
     void createBook_ReturnsUnauthorized() throws Exception {
         BookDTO bookDTO = new BookDTO();
         bookDTO.setIsbn("123456789");
