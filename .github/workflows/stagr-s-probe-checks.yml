@@ -50,3 +50,7 @@ jobs:
               --jq '[.check_runs[] | {id, app_id: .app.id, status, conclusion}]')
             echo "FACT4 filter=$filter runs=$runs"
           done
+          for check_run_id in $(gh api -X GET "repos/$REPO/commits/$SHA/check-runs" -f check_name="$CHECK_NAME" -f filter=all --jq '.check_runs[].id'); do
+            annotations=$(gh api "repos/$REPO/check-runs/$check_run_id/annotations" --jq '[.[] | .message]')
+            echo "FACT2 check_run=$check_run_id annotations=$annotations"
+          done
