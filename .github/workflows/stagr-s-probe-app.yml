@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Create a Stagr App token
         id: app-token
-        uses: actions/create-github-app-token@a6de09a5e3e8eb40028eda38d7ad96aea41ac75e  # v1.11.1
+        uses: actions/create-github-app-token@c1a285145b9d317df6ced56c09f525b5c2b6f755  # v1.11.1
         with:
           app-id: 5125793
           private-key: ${{ secrets.STAGR_APP_PRIVATE_KEY }}
