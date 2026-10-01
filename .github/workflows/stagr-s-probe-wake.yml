@@ -1,0 +1,24 @@
+name: stagr-s-probe-wake
+# Throwaway probe for exepex/agentic-foundation#249 (decision 17: does "a workflow finished" wake
+# a reader for a GitHub Actions producer?). Deleted when item S is done.
+on:
+  workflow_run:
+    workflows: [stagr-s-probe-pr]
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  log-workflow-run-event:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Log the finished workflow that woke this one
+        env:
+          FINISHED_NAME: ${{ github.event.workflow_run.name }}
+          FINISHED_EVENT: ${{ github.event.workflow_run.event }}
+          FINISHED_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          FINISHED_HEAD: ${{ github.event.workflow_run.head_sha }}
+          FINISHED_RUN_ID: ${{ github.event.workflow_run.id }}
+          PULL_REQUESTS: ${{ toJSON(github.event.workflow_run.pull_requests.*.number) }}
+        run: echo "FACT17 name=$FINISHED_NAME event=$FINISHED_EVENT conclusion=$FINISHED_CONCLUSION head=$FINISHED_HEAD run=$FINISHED_RUN_ID pull_requests=$(echo $PULL_REQUESTS | tr -d ' \n')"
