@@ -1,0 +1,36 @@
+name: stagr-s-probe-app
+# Throwaway probe for exepex/agentic-foundation#249 (doc 09 capability 7: does a result written by
+# the Stagr App wake another workflow?). stagr-s-probe-checks logs the check_run event it raises.
+# Deleted when item S is done.
+on:
+  workflow_dispatch:
+    inputs:
+      head_sha:
+        description: Commit the Stagr App writes a result for
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  write-result-as-stagr-app:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Create a Stagr App token
+        id: app-token
+        uses: actions/create-github-app-token@a6de09a5e3e8eb40028eda38d7ad96aea41ac75e  # v1.11.1
+        with:
+          app-id: 5125793
+          private-key: ${{ secrets.STAGR_APP_PRIVATE_KEY }}
+
+      - name: Write a completed result as the Stagr App
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ inputs.head_sha }}
+        run: |
+          gh api -X POST "repos/$REPO/check-runs" \
+            -f name="stagr/stage/probe" -f head_sha="$HEAD_SHA" \
+            -f status=completed -f conclusion=success \
+            --jq '"CAP7 wrote check_run=\(.id) app=\(.app.slug) app_id=\(.app.id) head=\(.head_sha)"'
