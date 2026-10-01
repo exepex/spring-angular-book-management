@@ -17,6 +17,26 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
+      - name: Show the App's and the installation's permissions
+        env:
+          APP_ID: 5125793
+          APP_PRIVATE_KEY: ${{ secrets.STAGR_APP_PRIVATE_KEY }}
+          REPO: ${{ github.repository }}
+        run: |
+          key_file=$(mktemp) && printf '%s' "$APP_PRIVATE_KEY" > "$key_file"
+          base64url() { openssl base64 -A | tr '+/' '-_' | tr -d '='; }
+          now=$(date +%s)
+          header=$(printf '{"alg":"RS256","typ":"JWT"}' | base64url)
+          payload=$(printf '{"iat":%d,"exp":%d,"iss":"%s"}' $((now - 60)) $((now + 540)) "$APP_ID" | base64url)
+          signature=$(printf '%s.%s' "$header" "$payload" | openssl dgst -sha256 -sign "$key_file" | base64url)
+          rm -f "$key_file"
+          app_jwt="$header.$payload.$signature"
+          echo "::add-mask::$app_jwt"
+          curl -s -H "Authorization: Bearer $app_jwt" -H "Accept: application/vnd.github+json" https://api.github.com/app \
+            | jq -c '{APP: .slug, id, owner: .owner.login, permissions}'
+          curl -s -H "Authorization: Bearer $app_jwt" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/installation" \
+            | jq -c '{INSTALLATION: .id, account: .account.login, permissions, repository_selection, suspended_at}'
+
       - name: Create a Stagr App token
         id: app-token
         uses: actions/create-github-app-token@c1a285145b9d317df6ced56c09f525b5c2b6f755  # v1.11.1
