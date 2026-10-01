@@ -24,6 +24,15 @@ jobs:
           app-id: 5125793
           private-key: ${{ secrets.STAGR_APP_PRIVATE_KEY }}
 
+      - name: Show what the Stagr App token may do
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          gh api -i /installation/repositories --jq '"CAP7 repositories=\([.repositories[].full_name])"' \
+            | grep -iE '^(x-oauth-scopes|x-accepted-github-permissions|github-authentication-token-expiration)|CAP7' || true
+          gh api -i -X POST "repos/${{ github.repository }}/check-runs" -f name=probe -f head_sha=0000000000000000000000000000000000000000 2>&1 \
+            | grep -iE '^(HTTP/|x-accepted-github-permissions)' || true
+
       - name: Write a completed result as the Stagr App
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
